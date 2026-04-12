@@ -29,3 +29,4 @@ class Verdict(BaseModel):
     confidence_score: Optional[float] = None  # Confidence in the valuation, e.g., 0.85 for 85% confidence
     rationale: Optional[str] = None  # Explanation for the verdict, if needed
 
+print("Schemas for Building, Unit, Transaction, and Verdict have been defined.")
