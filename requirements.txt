@@ -1,0 +1,9 @@
+pandas
+pydantic
+python-dotenv
+pytest
+rapidfuzz
+reportlab
+requests
+sqlalchemy
+psycopg2-binary

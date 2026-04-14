@@ -1,7 +1,7 @@
 # Define models for raw listings, raw transactions, (in raw_record.py) and... source metadata (in source_metadata.py). These should keep original text, original units, source URL or file path, parse timestamp, and confidence score. The reason is simple: this project must keep a full audit trail from raw source to final verdict, not just the cleaned output.
 # Source metadata in source_metadata.py should include fields like source name, type, last updated timestamp, and any relevant notes about the source.
 
-from pyparsing import Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 from datetime import datetime, timezone
