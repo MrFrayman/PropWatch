@@ -5,6 +5,7 @@
 
 from propwatch.services.adapters.base import BaseAdapter
 
+
 class DubaiAdapter(BaseAdapter):
     def __init__(self):
         super().__init__()
@@ -27,7 +28,7 @@ class DubaiAdapter(BaseAdapter):
             }
             transformed_data.append(transformed_item)
         return transformed_data
-    
+
     def load_data(self, transformed_data):
         # Load the transformed data into the system (e.g., database, API)
         # This is a placeholder implementation and should be replaced with actual logic to store the data
@@ -44,7 +45,7 @@ class DubaiAdapter(BaseAdapter):
                 "location": "Downtown Dubai",
                 "bedrooms": 3,
                 "bathrooms": 2,
-                "area": 1500
+                "area": 1500,
             },
             {
                 "property_id": "124",
@@ -53,14 +54,15 @@ class DubaiAdapter(BaseAdapter):
                 "location": "Palm Jumeirah",
                 "bedrooms": 5,
                 "bathrooms": 4,
-                "area": 3500
-            }
+                "area": 3500,
+            },
         ]
         return raw_data
-    
+
     def process_data(self):
         raw_data = self.extract_data()
         transformed_data = self.transform_data(raw_data)
         self.load_data(transformed_data)
+
 
 print("Dubai Adapter initialized and ready to process data.")

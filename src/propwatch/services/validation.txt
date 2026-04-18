@@ -1,0 +1,31 @@
+
+
+function validate_transaction(raw_record):
+    errors = []
+    // 1) required fields gate
+    for field in [listing_id, source, price, area, area_unit, transaction_date]:
+        if raw_record.get(field) is missing:
+            log critical, append error, raise ValidationError("missing " + field)
+    // 2) numeric ranges
+    price = cast_decimal(raw_record.price)
+    if price <= 0:
+        fail fast with error “price must be positive”
+    area = cast_decimal(raw_record.area)
+    if area <= 0 or area > MAX_REASONABLE_SQFT:
+        fail fast with reason
+    // 3) unit normalization guard
+    if raw_record.area_unit not in AREA_UNIT:
+        fail fast: “unknown area unit”
+    // 4) date parsing
+    transaction_date = parse_iso(raw_record.transaction_date)
+    if parse fails or transaction_date in future:
+        fail fast with timestamp issue
+    // 5) source confidence
+    source_confidence = raw_record.source_confidence or raw_record.source_trust_score
+    if source_confidence < MIN_CONFIDENCE_LEVEL:
+        mark record suspicious, fail or route to low-confidence pipeline
+    // 6) optional sanity checks
+    if bedroom_count present and not integer within [0,10]:
+        warn or fail depending on policy
+    if integrity flag indicates issues, raise before any downstream work
+    return normalized_record // include raw fields plus parsed values
