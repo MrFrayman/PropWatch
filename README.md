@@ -1,79 +1,109 @@
 # PropWatch UAE
 
-A property intelligence engine for Dubai and Sharjah that verifies whether a listing is real, compliant, and fairly priced, then compiles the findings into a PDF due-diligence report.
+PropWatch is a work in progress.
 
-The project is a work in progress. Most of what's described here is the intended design; implementation is ongoing.
+It started as a simple idea: if property listings can be checked against real evidence, then it should be easier to spot suspicious listings, normalize messy data, and get a clearer picture of what is actually being offered in Dubai and Sharjah.
 
----
+That is the direction of the project. It is still being built.
 
-## The idea
+## What this project is
 
-The UAE property market, Dubai especially, has a ghost listing problem. Portals are full of listings with recycled photos, expired permits, inflated prices, and no verifiable connection to an actual available unit. There are tools that show transaction data, and tools that aggregate listings, but nothing that combines both and explicitly blocks valuation when compliance signals are weak. The default assumption everywhere seems to be: show the listing, maybe caveat it lightly.
+PropWatch is an investor-oriented property intelligence system.
 
-PropWatch is built around the opposite assumption: treat the listing as suspicious until it proves otherwise.
+The core idea is to bring together:
+- raw listing data,
+- transaction evidence,
+- building-level context,
+- and verification signals,
 
----
+then organize all of that into something easier to inspect than a normal listing page.
 
-## What it's designed to do
+The project is being designed conservatively. If the data is weak, incomplete, or inconsistent, the system should reflect that instead of smoothing it over.
 
-It takes a single listing URL, runs it through a pipeline of verification and valuation logic, and produces a structured PDF that answers two questions: is this listing real and compliant, and does the price hold up against actual transaction history.
+## Why I am building it
 
-This is not a property search tool. It won't help you browse listings or shortlist neighborhoods; it operates on one URL at a time and produces one report.
+This project is mainly about building something useful and learning while doing it.
 
----
+Real estate data tends to be messy in ways that are easy to underestimate:
+- area values are not always consistent,
+- listings can drift from the actual building or unit,
+- verification signals may be missing,
+- and pricing can look reasonable until it is checked against the right baseline.
 
-## Planned pipeline
+PropWatch is my attempt to build a system that takes those problems seriously.
 
-Four nodes, intended to run in sequence.
+## Current state
 
-**ScoutNode** will handle scraping: Playwright pulls the listing DOM, grabs media URLs, extracts permit numbers, and normalizes the listed area into SqFt. Everything downstream is designed to work in SqFt; that's the canonical unit throughout.
+The project is still under active development.
 
-**SkepticNode** is where listings earn trust or don't. The plan is to run perceptual hashes on listing images and check for collisions in Redis, recycled photos being a classic ghost listing tell; verify the Madmoun QR code; and check Trakheesi and Media Council permit validity. All of that would feed into an integrity score:
+Right now, the focus is on the backend foundation:
+- source adapters,
+- ingestion,
+- normalization,
+- matching,
+- fingerprinting,
+- integrity checks,
+- and verdict logic.
 
-```
-FinalIntegrity = min(1.0, BaseIntegrity + MadmounBoost) × GateMultiplier
-```
+The frontend exists only as a working surface for now. It is intentionally plain. I am not trying to make it look finished before the system underneath is actually solid.
 
-If the score comes back below 0.7, the listing gets flagged `NON-COMPLIANT / SUSPICIOUS` and the pipeline stops there. Hard stop, not a soft warning.
+## What it is supposed to do
 
-**AnalystNode** only runs if integrity passed. It's intended to match the listing to a verified DLD building record: exact ID first, then fuzzy name match above 85% similarity, then coordinate proximity as a last resort. Once the building is confirmed, it queries six months of DLD transaction history for comparable units and produces a verdict: `NON-COMPLIANT / SUSPICIOUS`, `UNVERIFIED LOCATION`, `DISTRESSED ASSET`, `UNDERVALUED`, `FAIR MARKET VALUE`, `OVERPRICED`, or `DATA INSUFFICIENT`.
+Eventually, PropWatch should be able to:
+- pull in listing data from the relevant sources,
+- normalize area and price fields,
+- compare listings with building-level and transaction-level evidence,
+- flag suspicious or low-trust listings,
+- and generate a report that makes the result easier to review.
 
-**ReporterNode** compiles the approved state into a PDF with a fixed section order: Header, Identity Block, Verdict Card, Transaction Ledger, Integrity & Ghost Signals, Disclaimer.
+Nothing about that is meant to be flashy. The point is to be useful and reliable.
 
----
+## Project shape
 
-## The fingerprint approach
+The current architecture is built around a pipeline:
 
-Matching a live portal listing to DLD transaction records is hard because the data comes from completely different sources with inconsistent naming and no shared IDs. The intended solution is a coarse fingerprint:
+1. Ingest raw data.
+2. Normalize it.
+3. Match it to buildings and units.
+4. Check trust and integrity signals.
+5. Compare pricing against evidence.
+6. Compose a final verdict.
+7. Present the result in a report.
 
-```
-SHA256(building_id + "-" + bedroom_count + "-" + ROUND(canonical_area_sqft / 50) * 50)
-```
+That is the shape of the system I am building right now.
 
-The 50 SqFt bucket is deliberate. Without it, transaction pools fragment into one or two records, and a median from two data points is meaningless. View, floor level, and agent narration are all excluded; those aren't data.
+## Tech stack
 
----
+This is the stack I am using for the project right now:
 
-## Sharjah
+- **Backend:** Python, FastAPI.
+- **Database:** PostgreSQL.
+- **Frontend:** React-based frontend in progress.
+- **Validation / data modeling:** Pydantic-style models and typed Python code.
+- **Reporting:** PDF generation for final inspection reports.
+- **Development style:** modular services, clear separation between ingestion, normalization, matching, and reporting.
 
-Dubai has proper API access through Dubai Pulse; Sharjah doesn't, so that data would come from OCR and PDF parsing, which is noisier. All Sharjah output is intended to be capped at `MEDIUM` confidence, with a visible "Limited Data Source" watermark on the report. That's a policy decision, not a placeholder, and it stays until the underlying data quality actually improves.
+The stack may evolve as the project matures, but this is the current direction.
 
----
+## Design rules
 
-## Intended stack
+A few things matter a lot in this project:
 
-| Layer | Tech |
-|---|---|
-| Backend | NestJS v10+ (TypeScript, strict mode) |
-| Orchestration | LangGraph via `@langchain/langgraph` |
-| Database | PostgreSQL 16+ |
-| Queue / Cache | Redis 7+ with BullMQ |
-| Scraping | Playwright / Puppeteer |
-| PDF rendering | Puppeteer + HTML/CSS templates |
-| Typography | Inter, everything |
+- Prefer correctness over cleverness.
+- Prefer explicit code over hidden behavior.
+- Prefer conservative judgments over optimistic guesses.
+- If something is uncertain, say it is uncertain.
 
----
+Those rules are the reason PropWatch exists in the first place.
 
-## License
+## Status note
 
-MIT. Use it, fork it, adapt it.
+This repository is not a polished product. It is a build in progress.
+
+Some parts may be incomplete, some may be rough, and some may change as I learn more and refine the design. That is expected.
+
+## If you are looking around the repo
+
+The best place to start is usually the data model and the ingestion pipeline. That is where the project becomes real.
+
+The rest of the system makes more sense once those pieces are in place.
