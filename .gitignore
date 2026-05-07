@@ -26,3 +26,8 @@ var/
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+
+FILE_TIMELINE.txt
+FILE_TIMELINE_EXPLAINED.md
+
+docs/
